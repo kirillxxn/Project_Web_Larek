@@ -11,7 +11,7 @@
 - src/pages/index.html — HTML-файл главной страницы
 - src/types/index.ts — файл с типами
 - src/index.ts — точка входа приложения
-- src/styles/styles.scss — корневой файл стилей
+- src/scss/styles.scss — корневой файл стилей
 - src/utils/constants.ts — файл с константами
 - src/utils/utils.ts — файл с утилитами
 
@@ -44,7 +44,7 @@ yarn build
 ## Данные и типы данных, используемые в приложении
 Интерфейс карточки товара
 ```
-export interface IProductItem {
+ interface IProductItem {
     name: string;
     _id: string;
     price: number | null;
@@ -55,35 +55,35 @@ export interface IProductItem {
 ```
 Превью карточки товара 
  ```
-export interface IProductItemPreview {
+ interface IProductItemPreview {
     products: IProductItem[];
     preview: string | null;
     getProduct(productId: string) :IProductItem;
     setPreview(productId: string | null): void;
 }
 ```
-Интерфейс модальных окон форм оплаты этап
+Модальные окна для указания информации для оплаты 
 ```
-export interface IFormStepOne {
+ interface IFormStepOne {
     payment: string;
     address: string;
 }
-export interface IFormStepTwo {
+ interface IFormStepTwo {
     email: string;
     phone: number;
 }
 ```
-Интерфейс модального окна просмотра отдельной карточки
+Модальное окно просмотра отдельной карточки
 ```
-export interface IProductItemData {
+ interface IProductItemData {
     cards: IProductItem[];
     preview: string | null;
     getProduct(_id: string): IProductItem;
 }
 ```
-Интерфейс модального окна корзины
+Модальное окно для товаров в корзине
 ```
-export interface IBasketData {
+ interface IBasketData {
     items: IProductItem[];
     total: number;
     productIndex: number; 
@@ -92,9 +92,9 @@ export interface IBasketData {
     setProductInBasket(product: IProductItem[]): void; 
 }
 ```
-Интерфейс модального окна об успешной покупке
+Модальное окно после успешной покупки
 ```
-export interface ISuccessfulOrder {
+ interface ISuccessfulOrder {
     _id: string;
     total: number;
 }
@@ -166,7 +166,140 @@ options: RequestInit - опции
 
 - `deleteProduct(product: IProductItem)` - удаляет объект `IProductItem` из списка продуктов в корзине
 - `getProductInBasket() :IProductItem[]` - получает массив объектов `IProductItem`, представляющих список продуктов в корзине
-- `setProductInBasket(product: IProductItem[])` - устанавливает массив объектов `IProductItem` в качестве списка продуктов в корзине
 
  ### Классы представления 
 Все классы представления отвечают за отображение внутри контейнера (DOM-элемент) передаваемых в них данных.
+#### Абстрактный класс Component
+
+Базовый компонент который реализует вспомогательные методы для работы других классов. В конструкторе принимает HTMLElement с которым нужно работать
+
+Метод класса
+
+- toggleClass(element: HTMLElement, className: string, force?: boolean) - Переключает класс на указанном элементе DOM
+- setText(element: HTMLElement, value: unknown) - Устанавливает текстовое содержимое
+- setDisabled(element: HTMLElement, state: boolean) - Изменяет статус блокировки
+- setHidden(element: HTMLElement) - Скрывает элемент DOM
+- setVisible(element: HTMLElement) - Показывает элемент DOM
+- setImage(element: HTMLImageElement, src: string, alt?: string) - Устанавливает изображение с альтернативным текстом
+
+#### Класс Modal
+
+Расширяет класс `Component`. Реализует модальное окно. Предоставляет методы `open` и `close` для управления отображением модального окна. Устанавливает слушатели на клик в оверлей и кнопку-крестик для закрытия попапа.
+
+- constructor(container: HTMLElement, protected events: IEvents) - это конструктор, который, принимает HTML элемент модального окна и экземпляр класса `EventEmitter` для возможности инициации событий.
+
+Поля класса
+
+- _modal: HTMLElement - элемент модального окна 
+- _buttonClose: HTMLButtonElement - кнопка закрытия
+
+
+#### Класс Basket
+
+Расширяет класс `Component`. Отвечает за отображение корзины. В конструктор класса передается DOM элемент темплейта а так же экземпляр класса `EventEmitter`\
+
+Поля класса содержат DOM элементы темплейта - контейнер для размещения продуктов, итоговая цена и кнопка.
+
+Поля класса:
+
+- _products: HTMLElement - контейнер для размещения продуктов
+- _button: HTMLButtonElement - кнопка оформить
+- _total: HTMLElement - общая сумма покупки 
+
+
+Методы:
+
+- `set total(total: number)` - считает общую сумму товаров в корзине
+- `changeButton(state :boolean)` - меняет состояние кнопки в зависимости от наличия товаров в корзине
+- `set products(listProducts: HTMLElement)` - отображает список товаров в корзине
+
+
+#### Класс ModalOrderForm
+
+Расширяет класс Component<T>. Отвечает за отображение формы заказа, включая поля для адреса, телефона, электронной почты и способа оплаты.
+В конструктор класса `constructor(container: HTMLFormElement, events: IEvents)` передается DOM элемент темплейта, а так же экземпляр класса EventEmitter. Вешается обработчик события на выбор способа оплаты.
+
+Поля класса: 
+- _email: string - поле ввода для почты
+- _phone: string - поле ввода для номера телефона
+- _payment: HTMLButtonElement - выбор способа оплаты
+- _address: string - поле ввода для адреса
+- _buttonNext: HTMLButtonElement - кнопка далее для оформления заказа
+
+Методы:
+- `set email(value: string)` - установка email клиента
+- `set phone(value: string)` - установка телефона клиента
+- `set payment (value: string)` - установка способа оплаты
+- `set address(value: string)` - установка адреса клиента
+- `setValid(isValid: boolean)` - меняет состояние кнопки на неактивную/активную, если не заполнены/заполнены поля ввода
+
+
+#### Класс Success
+
+Расширяет класс `Component`. Отвечает за отображение модального окна успешного заказа. В конструктор класса передается DOM элемент темплейта а так же экземпляр класса `EventEmitter`\
+
+Поле класса содержат DOM элементы страницы - кнопка закрытия, общая сумма заказа.
+
+Методы: сеттер заполняющий сумму
+
+#### Класс Card
+
+Расширяет класс Component<T>. Класс генерирует карточки товаров, используемые на странице сайта для отображения доступных товаров. Он содержит элементы разметки для различных компонентов карточки продукта, таких как изображение, описание и кнопки добавления/удаления. В конструкторе класса передается DOM элемент темплейта, что позволяет при необходимости формитровать карточки товаров в  разных вариантах верстки. 
+
+Поля класса содержат элементы разметки элементов товара:
+
+- id: string - id товара
+- description: HTMLElement - описание товара
+- image: HTMLImageElement - изображение товара
+- title: HTMLElement - название товара
+- category: HTMLElement - категории товара
+- productIndex: HTMLElement - порядковый номер товара в корзине
+- addButton: HTMLButtonElemen - кнопка добавления в корзину
+- deleteButton: HTMLButtonElement - кнопка удаления товара из корзины
+
+#### Класс Page
+
+Расширяет класс Component<T>. Отвечает за отображение главной страницы сайта, содержит корзину товаров со счетчиком, также список товаров. В конструктор класса `constructor(container: HTMLElement, protected events: IEvents)` передается DOM элемент темплейта, а так же экземпляр класса EventEmitter. Вешается обработчик события на нажатие кнопки корзины.
+
+Поля класса:
+
+- _products: HTMLElement - список товаров
+- _basket: HTMLElement - корзина
+- _basketCounter - количество товаров в корзине
+
+Методы:
+
+- `set products(product: HTMLElement)` - выводит товары на страницу
+- `set basketCounter(value: number)` - устанавливает количество товаров в корзине 
+
+
+## Взаимодействие компонентов
+
+Код, описывающий взаимодействие представления и данных между собой находится в файле `index.ts`, выполняющем роль презентера.
+
+Взаимодействие осуществляется за счет событий генерируемых с помощью брокера событий и обработчиков этих событий, описанных в `index.ts`
+
+В `index.ts` сначала создаются экземпляры всех необходимых классов, а затем настраивается обработка событий.
+
+ Список всех событий, которые могут генерироваться в системе:
+1. События изменения данных (генерируются классами моделями данных)
+
+- `products:changed` - изменение массива карточек
+- `preview:changed` - выбрана карточка для показа
+
+2. События, возникающие при взаимодействии пользователя с интерфейсом (генерируются классами, отвечающими за представление)
+
+- `order:open` - открытие модального окна заказа
+- `basket:open` - открытие модального окна корзины
+- `modal:open` - открытие модального окна
+- `modal:close` - закрытие модального окна
+- `basket:add` - добавление товара в корзину
+- `preview:delete` - удаление товара из корзины в модальном окне товара
+- `basket:delete` -удаление товара из корзины
+- `basket:changed` -изменения в корзине
+- `payment:select` -выбор способа оплаты
+- `formErrors:change` - ошибки валидации
+- `order.address:change` - ввод в поле адреса
+- `order:submit` - нажата кнопка "Далее" в форме заказа
+- `contacts.email:change` - ввод в поле Email
+- `contacts.phone:change` - ввод в поле Телефон
