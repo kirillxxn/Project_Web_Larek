@@ -1,16 +1,23 @@
+// Преобразует строку в формат kebab-case
 export function pascalToKebab(value: string): string {
     return value.replace(/([a-z0–9])([A-Z])/g, "$1-$2").toLowerCase();
-}
+} 
+
+// Проверяет, является ли переданный параметр строкой длиной более 1 символа.
 
 export function isSelector(x: any): x is string {
     return (typeof x === "string") && x.length > 1;
 }
+
+// Проверяет, является ли переданный параметр null или undefined
 
 export function isEmpty(value: any): boolean {
     return value === null || value === undefined;
 }
 
 export type SelectorCollection<T> = string | NodeListOf<Element> | T[];
+
+ // Преобразует переданный селектор в массив элементов DOM
 
 export function ensureAllElements<T extends HTMLElement>(selectorElement: SelectorCollection<T>, context: HTMLElement = document as unknown as HTMLElement): T[] {
     if (isSelector(selectorElement)) {
@@ -26,6 +33,8 @@ export function ensureAllElements<T extends HTMLElement>(selectorElement: Select
 }
 
 export type SelectorElement<T> = T | string;
+
+// Преобразует переданный селектор в единственный элемент DOM
 
 export function ensureElement<T extends HTMLElement>(selectorElement: SelectorElement<T>, context?: HTMLElement): T {
     if (isSelector(selectorElement)) {
@@ -44,10 +53,14 @@ export function ensureElement<T extends HTMLElement>(selectorElement: SelectorEl
     throw new Error('Unknown selector element');
 }
 
+//Клонирует шаблон элемента DOM
+
 export function cloneTemplate<T extends HTMLElement>(query: string | HTMLTemplateElement): T {
     const template = ensureElement(query) as HTMLTemplateElement;
     return template.content.firstElementChild.cloneNode(true) as T;
 }
+
+//Генерирует классы BEM
 
 export function bem(block: string, element?: string, modifier?: string): { name: string, class: string } {
     let name = block;
@@ -58,6 +71,8 @@ export function bem(block: string, element?: string, modifier?: string): { name:
         class: `.${name}`
     };
 }
+
+//Возвращает массив имен свойств объекта
 
 export function getObjectProperties(obj: object, filter?: (name: string, prop: PropertyDescriptor) => boolean): string[] {
     return Object.entries(
@@ -98,6 +113,9 @@ export function isPlainObject(obj: unknown): obj is object {
         prototype === null;
 }
 
+
+//Проверяет, является ли переданный параметр булевым значением
+
 export function isBoolean(v: unknown): v is boolean {
     return typeof v === 'boolean';
 }
@@ -132,4 +150,14 @@ export function createElement<
         }
     }
     return element;
+}
+//Преобразует первую букву строки в верхний регистр, а остальные буквы - в нижний регистр.
+
+export function capitalize(value: string): string {
+    return value.charAt(0).toUpperCase() + value.slice(1);
+}
+//Добавляет разделитель (по умолчанию пробел) между каждыми тремя цифрами в числе, начиная с конца.
+
+export function formatNumber(x: number, sep = ' ') {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, sep);
 }

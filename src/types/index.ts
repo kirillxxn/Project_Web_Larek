@@ -1,40 +1,58 @@
-
 export interface IProductItem {
-    name: string;
-    _id: string;
-    price: number | null;
-    description: string;
-    image: string;
-    category: string;
+	id: string;
+	description: string;
+	image: string;
+	title: string;
+	category: string;
+	price: number | null;
 }
-export interface IProductItemPreview{
-    products: IProductItem[];
-    preview: string | null;
-    getProduct(productId: string) :IProductItem;
-    setPreview(productId: string | null): void;
+
+export interface IProductItemPreview {
+	products: IProductItem[];
+	preview: string | null;
+	getProduct(id: string): IProductItem;
 }
-export interface IFormStepOne {
-    payment: string;
-    address: string;
-}
-export interface IFormStepTwo {
-    email: string;
-    phone: number;
-}
-export interface IProductItemData {
-    cards: IProductItem[];
-    preview: string | null;
-    getProduct(_id: string): IProductItem;
-}
+
 export interface IBasketData {
-    items: IProductItem[];
-    total: number;
-    productIndex: number; 
-    deleteProduct(product: IProductItem): void;
-    getProductInBasket() :IProductItem[];
-    setProductInBasket(product: IProductItem[]): void; 
+	items: IProductItem[];
+	total: number;
+	setProductsInBasket(product: IProductItem): void;
+	getProductsInBasket(): IProductItem[];
+	checkProductInBasket(product: IProductItem): boolean;
+	deleteProductsInBasket(product: IProductItem): void;
+	clearBasket(): void;
 }
-export interface ISuccessfulOrder{
-    _id: string;
-    total: number;
+
+export interface IFormStepOne {
+	payment: string;
+	address: string;
+}
+
+export interface IFormStepTwo {
+	email: string;
+	phone: string;
+}
+
+export interface IOrder {
+	_order: IOrderData;
+	setOrderItems(items: string[]): void;
+	setOrderPrice(value: number): void;
+	setOrderField(field: keyof IOrderForm, value: string): void;
+	validateOrder(): boolean;
+	clearOrder(): void;
+}
+
+
+export type FormErrors = Partial<Record<keyof IOrderData, string>>;
+
+export interface IOrderData extends IOrderForm {
+	items: string[];
+	total: number;
+}
+
+export interface IOrderForm extends IFormStepOne, IFormStepTwo {}
+
+export interface ISuccessfulOrder {
+	id: string;
+	total: number;
 }
