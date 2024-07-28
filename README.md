@@ -11,7 +11,7 @@
 - src/pages/index.html — HTML-файл главной страницы
 - src/types/index.ts — файл с типами
 - src/index.ts — точка входа приложения
-- src/styles/styles.scss — корневой файл стилей
+- src/scss/styles.scss — корневой файл стилей
 - src/utils/constants.ts — файл с константами
 - src/utils/utils.ts — файл с утилитами
 
@@ -160,7 +160,7 @@ export interface IOrderData extends IOrderForm {
 
 ### Слой данных 
 
-#### Класс ProductData 
+#### Класс ProductItemPreview 
 
 Класс отвечает за хранение и логику работы с данными товаров.
 В полях класса хранятся следующие данные:
@@ -177,23 +177,20 @@ export interface IOrderData extends IOrderForm {
 
 #### Класс BasketData
 
-Класс представляет корзину покупок и предоставляет методы управления ее содержимым. Он хранит массив продуктов `IProductItem`, общую стоимость и порядковые номера продуктов.
+Расширяет класс Component. Предназначен для реализации модального окна с формой, содержащей информацию о выбранных для оформления товарах. При сабмите инициирует событие подтверждения данных и переходу к оформлению заказа.
 
-В полях класса хранятся следующие данные:
+Конструктор: 
+- `constructor(container: HTMLElement, events: IEvents)` -  наследуется от абстрактного класса Modal
 
-- items: IProductItem[] - массив объектов `IProductItem`, представляющих список продуктов в корзине
-- total: number - количество продуктов в корзине
+Поля класса:
+- `orderButton: HTMLButtonElement` - кнопка подтверждения
+- `list: HTMLElement[]` - коллекция всех выбранных товаров
+- `total: string` - сумма для оплаты
 
-
-Так же класс предоставляет методы для взаимодействия с этими данными: 
-
-- `getProductInBasket() : IProductItem[]` - получает массив объектов `IProductItem`, представляющих список продуктов в корзине
-- `setProductInBasket(product: IProductItem[])` - устанавливает массив объектов `IProductItem` в качестве списка продуктов в корзине
-- `deleteProductsInBasket(product: IProductItem)` - удаляет объект `IProductItem` из списка продуктов в корзине
-- `checkProductInBasket(product: IProductItem): boolean` - проверяет по id, находится ли продукт в корзине
-- `clearBasket()` - очищает корзину
-- `get totalPrice()` - расчитывает итоговую сумму заказа
-- `get totalCard()` - получает количество продуктов 
+Методы: 
+- `get list()` - получение списка выбранных товаров
+- `set List()` - вывод списка выбранных товаров
+- `set total()` - вывод общей стоимости товаров
 
 #### Класс OrderData
 
@@ -205,7 +202,6 @@ export interface IOrderData extends IOrderForm {
 Так же класс предоставляет набор методов для взаимодействия с этими данными.
 
 - `get order()` - получить все данные заказа
-- `setOrderItems(items: string[])` - записывает в массив id товаров в заказе.
 - `setOrderPrice(value: number)` - записывает общую цену заказа
 - `clearOrder(): void` - очищает массив данных после заказа
 - `setOrderField(field: keyof IOrderForm, value: string)` - записывает данные с полей форм в массив данных заказа _order
@@ -245,32 +241,6 @@ export interface IOrderData extends IOrderForm {
 - `open()` - открытие модального окна
 - `close()` - закрытие модального окна
 - `render(): HTMLElement` - рендерит модальное окно с переданным контентом и вызывает метод open() для открытия окна.
-
-#### Класс Basket 
-
-Расширяет класс Component<T>. Отвечает за отображение корзины, включая список продуктов и общую стоимость. 
-В конструктор класса constructor(container: HTMLFormElement, events: IEvents) передается DOM элемент темплейта, а так же экземпляр класса EventEmitter. 
-Вешает обработчик события клика на кнопку оформить.\
-
-Поля класса:
-
-- _list: HTMLElement - контейнер для размещения продуктов
-- _total: HTMLElement - общая сумма покупки 
-- _button: HTMLButtonElement - кнопка оформить
-
-Методы:
-
-- `set total(total: number)` - считает общую сумму товаров
-- `set items(listProducts: HTMLElement)` - отображает список товаров
-
-Интерфейс:
-
-```
-interface IBasketView {
-    items: HTMLElement[];
-    total: number;
-}
-```
 
 #### Класс Form
 

@@ -44,7 +44,7 @@ const contactForm = new OrderContacts(cloneTemplate(contactsTemplate), events);
 const page = new MainPage(document.body, events);
 const basket = new Basket(cloneTemplate(basketTemplate), events);
 
-const basketData = new BasketData({}, events);
+const basketData = new BasketData();
 const productData = new ProductData({}, events);
 const orderData = new OrderData({}, events);
 
@@ -90,10 +90,6 @@ events.on('preview:changed', (product: IProductItem) => {
 			product,
 			events
 		);
-		productCard.buttonText = basketData.checkProductInBasket(product)
-			? 'Удалить из корзины'
-			: 'В корзину';
-
 		modal.render({
 			content: productCard.render(product),
 		});

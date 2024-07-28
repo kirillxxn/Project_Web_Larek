@@ -24,6 +24,17 @@ export class OrderData extends Model<IOrder> implements IOrder {
 		this._order.total = value;
 	}
 
+	clearOrder(): void {
+		this._order = {
+			items: [],
+			address: '',
+			email: '',
+			phone: '',
+			payment: '',
+			total: 0,
+		};
+	}
+
 	setOrderField(field: keyof IOrderForm, value: string) {
 		this._order[field] = value;
 
@@ -34,31 +45,31 @@ export class OrderData extends Model<IOrder> implements IOrder {
 
 	validateOrder() {
 		const errors: typeof this.formErrors = {};
-		if (!this.order.email) {
-			errors.email = 'Необходимо указать email';
+		const regexEmail = /^[^@]+@\w+(\.\w+)+\w$/;
+		const regexPhone = /^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$/;
+
+		if (!this._order.payment) {
+			errors.payment = 'Необходимо выбрать способ оплаты';
 		}
-		if (!this.order.phone) {
-			errors.phone = 'Необходимо указать телефон';
-		}
-		if (!this.order.address) {
+
+		if (!this._order.address) {
 			errors.address = 'Необходимо указать адрес';
 		}
-		if (!this.order.payment) {
-			errors.payment = 'Необходимо указать способ оплаты';
+
+		if (!this._order.email) {
+			errors.email = 'Необходимо указать Email';
+		} else if (!regexEmail.test(this._order.email)) {
+			errors.email = 'Необходимо указать валидный Email';
 		}
+
+		if (!this._order.phone) {
+			errors.phone = 'Необходимо указать телефон';
+		} else if (!regexPhone.test(this._order.phone)) {
+			errors.email = 'Необходимо указать валидный телефон';
+		}
+
 		this.formErrors = errors;
 		this.events.emit('formErrors:change', this.formErrors);
 		return Object.keys(errors).length === 0;
-	}
-
-	clearOrder(): void {
-		this._order = {
-			items: [],
-			address: '',
-			email: '',
-			phone: '',
-			payment: '',
-			total: 0,
-		};
 	}
 }
