@@ -99,8 +99,13 @@ export class ProductCard extends Component<IProductItem> {
 	}
 
 	set category(value: string) {
-		this._category?.classList.add(`card__category_${this.categoryType[value]}`);
-		this.setText(this._category, value);
+		if (this._category) {
+			for (const type of Object.keys(this.categoryType)) {
+				this.toggleClass(this._category, `card__category_${this.categoryType[type]}`, false);
+			}
+			this.toggleClass(this._category, `card__category_${this.categoryType[value]}`, true);
+			this.setText(this._category, value);
+		}
 	}
 
 	set price(value: number) {

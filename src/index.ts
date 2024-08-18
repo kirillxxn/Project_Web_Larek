@@ -44,7 +44,7 @@ const contactForm = new OrderContacts(cloneTemplate(contactsTemplate), events);
 const page = new MainPage(document.body, events);
 const basket = new Basket(cloneTemplate(basketTemplate), events);
 
-const basketData = new BasketData();
+const basketData = new BasketData({}, events);
 const productData = new ProductData({}, events);
 const orderData = new OrderData({}, events);
 
@@ -119,7 +119,7 @@ events.on('basket:open', () => {
 });
 
 events.on('basket:changed', () => {
-	page.counter = basketData.totalCard;
+	page.counter = basketData.totalProducts;
 	basket.total = basketData.totalPrice;
 
 	basket.items = Array.from(basketData.getProductsInBasket()).map(

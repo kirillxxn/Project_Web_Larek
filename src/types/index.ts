@@ -14,13 +14,14 @@ export interface IProductItemPreview {
 }
 
 export interface IBasketData {
-	items: IProductItem[];
-	total: number;
+	totalProducts: number;
+	totalPrice: number;
 	setProductsInBasket(product: IProductItem): void;
 	getProductsInBasket(): IProductItem[];
 	checkProductInBasket(product: IProductItem): boolean;
 	deleteProductsInBasket(product: IProductItem): void;
 	clearBasket(): void;
+
 }
 
 export interface IFormStepOne {

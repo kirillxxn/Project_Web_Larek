@@ -1,39 +1,43 @@
-import { IProductItem, IBasketData } from '../../types/index';
+import { IBasketData, IProductItem } from '../../types';
+import { ProductData } from './ProductData';
 
-export class BasketData implements IBasketData {
-    total: number = 0;
-    items: IProductItem[] = [];
+export class BasketData extends ProductData implements IBasketData {
 
-    setProductsInBasket(product: IProductItem) {
-        if (!this.checkProductInBasket(product)) {
-            this.items.push(product);
-        }
-    }
+	protected _productsInBasket: IProductItem[] = [];
+	protected _totalProducts: number;
 
-    getProductsInBasket(): IProductItem[] {
-        return this.items;
-    }
+	setProductsInBasket(product: IProductItem) {
+		if (!this._productsInBasket.some((item) => item.id === product.id)) {
+			this._productsInBasket.push(product);
+		}
+	}
 
-    checkProductInBasket(product: IProductItem): boolean {
-        return this.items.some((item) => item.id === product.id);
-    }
+	getProductsInBasket(): IProductItem[] {
+		return this._productsInBasket;
+	}
 
-    deleteProductsInBasket(product: IProductItem) {
-        this.items = this.items.filter((item) => item.id !== product.id);
-    }
+	get totalProducts(): number {
+		return this._productsInBasket.length;
+	}
 
-    clearBasket() {
-        this.items.length = 0;
-        this.total = 0;
-    }
+	get totalPrice(): number {
+		return this._productsInBasket.reduce((total, product) => {
+			return total + (product.price || 0);
+		}, 0);
+	}
 
-    get totalPrice(): number {
-        return this.items.reduce((total, product) => {
-            return total + (product.price || 0);
-        }, 0);
-    }
+	checkProductInBasket(item: IProductItem): boolean {
+		return this._productsInBasket.some((product) => product.id === item.id);
+	}
 
-    get totalCard(): number {
-        return this.items.length;
-    }
+	deleteProductsInBasket(item: IProductItem) {
+		this._productsInBasket = this._productsInBasket.filter(
+			(product) => product.id !== item.id
+		);
+	}
+
+	clearBasket() {
+		this._productsInBasket.length = 0;
+		this._totalProducts = 0;
+	}
 }
