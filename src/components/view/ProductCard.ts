@@ -24,15 +24,17 @@ export class ProductCard extends Component<IProductItem> {
 		дополнительное: 'additional',
 	};
 
+	private product: IProductItem;
+
 	constructor(
 		element: HTMLElement,
-		productInBasket: boolean,
+		protected productInBasket: boolean,
 		product: IProductItem,
-		events: IEvents,
+		protected events: IEvents,
 		actions?: ICardActions
 	) {
 		super(element);
-
+		this.product = product;
 		this._description = element.querySelector('.card__text');
 		this._image = element.querySelector('.card__image');
 		this._title = element.querySelector('.card__title');
@@ -53,25 +55,31 @@ export class ProductCard extends Component<IProductItem> {
 		if (this._button) {
 			if (productInBasket) {
 				this._button.addEventListener('click', () => {
-					events.emit('preview:delete', product);
+					events.emit('preview:delete', this.product);
 				});
 			} else {
 				this._button.addEventListener('click', () => {
-					events.emit('basket:add', product);
+					events.emit('basket:add', this.product);
 				});
 			}
 		}
 
-		if (product.price === null) {
-			this.setDisabled(this._button, true);
-			this.setText(this._button, 'Товар бесценен');
-		}
-
 		if (this.deleteButton) {
 			this.deleteButton.addEventListener('click', () => {
-				events.emit('basket:delete', product);
+				events.emit('basket:delete', this.product);
 			});
 		}
+	}
+	public render(product: IProductItem): HTMLElement {
+		this.id = product.id;
+		this.image = product.image;
+		this.title = product.title;
+		this.description = product.description;
+		this.category = product.category;
+		this.price = product.price;
+		this.index = String(product.index || 0);
+		
+		return this.container; 
 	}
 
 	set id(value: string) {
@@ -95,7 +103,7 @@ export class ProductCard extends Component<IProductItem> {
 	}
 
 	get title(): string {
-		return this._title.textContent;
+		return this._title.textContent || '';
 	}
 
 	set category(value: string) {
@@ -111,7 +119,7 @@ export class ProductCard extends Component<IProductItem> {
 	set price(value: number) {
 		this.setText(this._price, value ? `${value} синапсов` : 'Бесценно');
 		if (this._button) {
-			this._button.disabled === !value;
+			this._button.disabled = !value;
 		}
 	}
 

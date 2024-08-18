@@ -52,6 +52,7 @@ yarn build
 	title: string;
 	category: string;
 	price: number | null;
+	index?: number;
 }
 ```
 Превью карточки товара 
@@ -170,41 +171,45 @@ export interface IOrderData extends IOrderForm {
 
 Так же класс предоставляет методы для взаимодействия с этими данными: 
 
-- getProduct(id: string) :IProductItem - возвращает карточку товара по ее Id
-- set preview(productId: string | null) -  устанавливает данные для предварительного просмотра выбранного продукта
-- get preview() - получить выбранный товар для показа в модальном окне
-- get products() - получить все продукты
+- `getProduct(id: string) :IProductItem` - возвращает карточку товара по ее Id
+- `set preview(productId: string | null)` -  устанавливает данные для предварительного просмотра выбранного продукта
+- `get preview()` - получить выбранный товар для показа в модальном окне
+- `get products()` - получить все продукты
 
 #### Класс BasketData
 
-Расширяет класс Component. Предназначен для реализации модального окна с формой, содержащей информацию о выбранных для оформления товарах. При сабмите инициирует событие подтверждения данных и переходу к оформлению заказа.
+Класс отвечает за хранение и логику работы с данными корзины.\
+В полях класса хранятся следующие данные:
 
-Конструктор: 
-- `constructor(container: HTMLElement, events: IEvents)` -  наследуется от абстрактного класса Modal
+- \_totalProducts: number - количество продуктов в корзине
+- \__productsInBasket: IProductItem[] = [] - массив с продуктами
 
-Поля класса:
-- `orderButton: HTMLButtonElement` - кнопка подтверждения
-- `list: HTMLElement[]` - коллекция всех выбранных товаров
-- `total: string` - сумма для оплаты
+Так же класс предоставляет набор методов для взаимодействия с этими данными.
 
-Методы: 
-- `get list()` - получение списка выбранных товаров
-- `set List()` - вывод списка выбранных товаров
-- `set total()` - вывод общей стоимости товаров
+- `setProductsInBasket(product: IProductItem)` - добавляет продукт в корзину
+- `getProductsInBasket(): IProductItem[]` - получает продукты из корзины
+- `checkProductInBasket(item: IProductItem): boolean` - проверяет по id, находится ли продукт в корзине
+- `get totalProducts(): number` - получить количество продуктов в корзине
+- `get totalPriсe(): number` - получить общую цену в корзине
+- `deleteProductsInBasket(item: IProductItem)` - удаляет продукт из корзины
+- `clearBasket()` - очищает корзину
+- а так-же геттеры для получения общей цены и количества продуктов в корзине
 
 #### Класс OrderData
 
-Класс отвечает за хранение и логику работы с данными заказа.
+Класс отвечает за хранение и логику работы с данными заказа.\
 В полях класса хранятся следующие данные:
 
-- _order: IOrderData - все данные заказа
+- \_order: IOrderData - все данные заказа
 - formErrors: FormErrors = {} - массив с текстом ошибок форм.
+
 Так же класс предоставляет набор методов для взаимодействия с этими данными.
 
 - `get order()` - получить все данные заказа
+- `setOrderItems(items: string[])` - записывает в массив id товаров в заказе.
 - `setOrderPrice(value: number)` - записывает общую цену заказа
 - `clearOrder(): void` - очищает массив данных после заказа
-- `setOrderField(field: keyof IOrderForm, value: string)` - записывает данные с полей форм в массив данных заказа _order
+- `setOrderField(field: keyof IOrderForm, value: string)` - записывает данные с полей форм в массив данных заказа \_order
 - `validateOrder()` - валидация форм
 
 
