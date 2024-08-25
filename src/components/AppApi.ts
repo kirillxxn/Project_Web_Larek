@@ -1,37 +1,33 @@
-import { IOrderData, ISuccessfulOrder, IProductItem } from '../types';
 import { Api, ApiListResponse } from './base/api';
+import { IProductItem, ISuccessfulOrder, IShoppingPost} from './../types';
 
-export interface IAppAPI {
-	getCardItem: (id: string) => Promise<IProductItem>;
-	getCardList: () => Promise<IProductItem[]>;
-	orderProduct: (order: IOrderData) => Promise<ISuccessfulOrder>;
-}
+export class SiteApi extends Api {
+	protected _cdn: string;
 
-export class WebAPI extends Api implements IAppAPI {
-	readonly cdn: string;
-
-	constructor(cdn: string, baseUrl: string, options?: RequestInit) {
+	constructor(cdn: string, baseUrl: string, options: RequestInit = {}) {
 		super(baseUrl, options);
-		this.cdn = cdn;
+		this._cdn = cdn;
 	}
 
-	getCardItem(id: string): Promise<IProductItem> {
-		return this.get(`/product/${id}`).then((item: IProductItem) => ({
-			...item,
-			image: this.cdn + item.image,
-		}));
-	}
+	getProductItem(id: string): Promise<IProductItem> {
+        return this.get(`/product/${id}`).then(
+            (item: IProductItem) => ({
+                ...item,
+                image: `${this._cdn}${item.image}`,
+            })
+        );
+    }
 
-	getCardList(): Promise<IProductItem[]> {
+	getProductList(): Promise<IProductItem[]> {
 		return this.get('/product').then((data: ApiListResponse<IProductItem>) =>
-			data.items.map((item) => ({
+			data.items.map(item => ({
 				...item,
-				image: this.cdn + item.image,
+				image: `${this._cdn}${item.image}`,
 			}))
 		);
 	}
 
-	orderProduct(order: IOrderData): Promise<ISuccessfulOrder> {
-		return this.post('/order', order).then((data: ISuccessfulOrder) => data);
+	postOrder(orderData: IShoppingPost): Promise<ISuccessfulOrder> {
+        return this.post(`/order`, orderData).then((orderResult: ISuccessfulOrder) => orderResult)
 	}
 }

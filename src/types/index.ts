@@ -1,3 +1,4 @@
+import { IEvents } from '../components/base/events';
 export interface IProductItem {
 	id: string;
 	description: string;
@@ -25,36 +26,44 @@ export interface IBasketData {
 
 }
 
-export interface IFormStepOne {
-	payment: string;
-	address: string;
-}
-
-export interface IFormStepTwo {
-	email: string;
-	phone: string;
-}
-
 export interface IOrder {
-	_order: IOrderData;
-	setOrderItems(items: string[]): void;
-	setOrderPrice(value: number): void;
-	setOrderField(field: keyof IOrderForm, value: string): void;
-	validateOrder(): boolean;
-	clearOrder(): void;
+    payment: string;
+    address: string;
 }
 
-
-export type FormErrors = Partial<Record<keyof IOrderData, string>>;
-
-export interface IOrderData extends IOrderForm {
-	items: string[];
-	total: number;
+export interface IBuyerInfo {
+    email: string;
+    phone: string;
 }
 
-export interface IOrderForm extends IFormStepOne, IFormStepTwo {}
+export interface IOrderData {
+    CheckValidation(data: Record<keyof IOrder, string>): boolean;
+}
+
+export interface IBuyerInfoData {
+    CheckValidation(data: Record<keyof IBuyerInfo, string>): boolean;
+}
+
+export type IShoppingInfo = IOrder & IBuyerInfo;
+
+export type IShoppingPost = IShoppingInfo & {
+    total: number;
+    items: string[];
+}
+
+export type IFormError = Partial<IShoppingInfo>;
+
+
+export interface IAppInfo {
+    catalog: IProductItem[];
+    basket: IProductItem[];
+    order: IShoppingInfo;
+    formError: IFormError;
+    events: IEvents;
+}
 
 export interface ISuccessfulOrder {
-	id: string;
-	total: number;
+    id: string;
+    total: number;
 }
+

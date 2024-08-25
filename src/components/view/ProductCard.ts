@@ -1,133 +1,111 @@
-import { IProductItem } from '../../types';
-import { Component } from '../base/component';
-import { IEvents } from '../base/events';
+import { IProductItem } from "../../types";
+import { Component } from "../base/component";
+import { ensureElement } from "../../utils/utils";
 
-interface ICardActions {
-	onClick: (event: MouseEvent) => void;
+interface IProductActions {
+  onClick: (event: MouseEvent) => void;
 }
 
 export class ProductCard extends Component<IProductItem> {
-	protected _id: string;
-	protected _description?: HTMLElement;
-	protected _image?: HTMLImageElement;
-	protected _title: HTMLElement;
-	protected _category?: HTMLElement;
-	protected _price: HTMLElement;
-	protected _button: HTMLButtonElement;
-	protected deleteButton: HTMLButtonElement;
-	protected _index: HTMLElement;
-	protected categoryType = <Record<string, string>>{
-		кнопка: 'button',
-		'софт-скил': 'soft',
-		'хард-скил': 'hard',
-		другое: 'other',
-		дополнительное: 'additional',
-	};
+  protected _index?: HTMLElement;
+  protected _id: HTMLElement;
+  protected _description?: HTMLElement;
+  protected _image?: HTMLImageElement;
+  protected _title: HTMLElement;
+  protected _category?: HTMLElement;
+  protected _price: HTMLElement;
+  protected _button?: HTMLButtonElement;
+  protected _deletButton?: HTMLButtonElement;
 
-	private product: IProductItem;
+  constructor(
+    protected blockName: string,
+    container: HTMLElement,
+    actions?: IProductActions
+  ) {
+    super(container);
+    this._index = this.container.querySelector(".basket__item-index");
+    this._description = this.container.querySelector(`.${blockName}__text`);
+    this._image = this.container.querySelector(`.card__image`);
+    this._title = ensureElement<HTMLElement>(
+      `.${blockName}__title`,
+      this.container
+    );
+    this._price = ensureElement<HTMLElement>(`.${blockName}__price`, container);
+    this._category = this.container.querySelector(`.card__category`);
+    this._button = this.container.querySelector(`.${blockName}__button`);
 
-	constructor(
-		element: HTMLElement,
-		protected productInBasket: boolean,
-		product: IProductItem,
-		protected events: IEvents,
-		actions?: ICardActions
-	) {
-		super(element);
-		this.product = product;
-		this._description = element.querySelector('.card__text');
-		this._image = element.querySelector('.card__image');
-		this._title = element.querySelector('.card__title');
-		this._category = element.querySelector('.card__category');
-		this._price = element.querySelector('.card__price');
-		this._button = element.querySelector('.button');
-		this._index = element.querySelector('.basket__item-index');
-		this.deleteButton = element.querySelector('.basket__item-delete');
+    if (actions?.onClick) {
+      if (this._button) {
+        this._button.addEventListener("click", actions.onClick);
+      } else {
+        container.addEventListener("click", actions.onClick);
+      }
+    }
+  }
 
-		if (actions?.onClick) {
-			if (this._button) {
-				this._button.addEventListener('click', actions.onClick);
-			} else {
-				element.addEventListener('click', actions.onClick);
-			}
-		}
+  set id(value: string) {
+    this.container.dataset.id = value;
+  }
 
-		if (this._button) {
-			if (productInBasket) {
-				this._button.addEventListener('click', () => {
-					events.emit('preview:delete', this.product);
-				});
-			} else {
-				this._button.addEventListener('click', () => {
-					events.emit('basket:add', this.product);
-				});
-			}
-		}
+  get id(): string {
+    return this.container.dataset.id || "";
+  }
 
-		if (this.deleteButton) {
-			this.deleteButton.addEventListener('click', () => {
-				events.emit('basket:delete', this.product);
-			});
-		}
-	}
-	public render(product: IProductItem): HTMLElement {
-		this.id = product.id;
-		this.image = product.image;
-		this.title = product.title;
-		this.description = product.description;
-		this.category = product.category;
-		this.price = product.price;
-		this.index = String(product.index || 0);
-		
-		return this.container; 
-	}
+  set description(value: string) {
+    this.setText(this._description, value);
+  }
 
-	set id(value: string) {
-		this.container.dataset.id = value;
-	}
+  set image(value: string) {
+    this.setImage(this._image, value, this.title);
+  }
 
-	get id(): string {
-		return this.container.dataset.id || '';
-	}
+  set title(value: string) {
+    this.setText(this._title, value);
+  }
 
-	set image(value: string) {
-		this.setImage(this._image, value, this.title);
-	}
+  get title(): string {
+    return this._title.textContent || "";
+  }
 
-	set description(value: string) {
-		this.setText(this._description, value);
-	}
+  set category(value: string) {
+    const allCategories: Record<string, string> = {
+      "софт-скил": "soft",
+      "хард-скил": "hard",
+      другое: "other",
+      кнопка: "button",
+      дополнительное: "additional",
+    };
 
-	set title(value: string) {
-		this.setText(this._title, value);
-	}
+    Object.values(allCategories).forEach((_category) => {
+      this.toggleClass(
+        this._category,
+        `card__category_${allCategories[value]}`,
+        false
+      );
+    });
+    this.toggleClass(
+      this._category,
+      `card__category_${allCategories[value]}`,
+      true
+    );
+    this.setText(this._category, value);
+  }
 
-	get title(): string {
-		return this._title.textContent || '';
-	}
+  set price(value: number | null) {
+    if (value === null) {
+      this.setDisabled(this._button, true);
+      this.setText(this._button, "Нельзя купить");
+      this.setText(this._price, "Бесценно");
+    } else {
+      this.setText(this._price, `${value} синапсов`);
+    }
+  }
 
-	set category(value: string) {
-		if (this._category) {
-			for (const type of Object.keys(this.categoryType)) {
-				this.toggleClass(this._category, `card__category_${this.categoryType[type]}`, false);
-			}
-			this.toggleClass(this._category, `card__category_${this.categoryType[value]}`, true);
-			this.setText(this._category, value);
-		}
-	}
+  set inBasket(isInBasket: boolean) {
+    this.setText(this._button, isInBasket ? "Убрать" : "В корзину");
+  }
 
-	set price(value: number) {
-		this.setText(this._price, value ? `${value} синапсов` : 'Бесценно');
-		if (this._button) {
-			this._button.disabled = !value;
-		}
-	}
-
-	set buttonText(value: string) {
-		this.setText(this._button, value);
-	}
-
-	set index(value: string) {
-		this.setText(this._index, value);
-	}
+  set index(value: number) {
+    this.setText(this._index, value);
+  }
 }

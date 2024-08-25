@@ -75,46 +75,33 @@ yarn build
 	clearBasket(): void;
 }
 ```
-Модальные окна для указания информации для оплаты 
+Форма ввода данных об адресе и способе доставки
 ```
- interface IFormStepOne {
+export interface IOrder {
     payment: string;
     address: string;
 }
- interface IFormStepTwo {
+```
+Форма ввода контактных данных покупателя
+```
+
+export interface IBuyerInfo {
     email: string;
-    phone: number;
+    phone: string;
 }
 ```
-Интерфейс модели заказа товара
-```
-export interface IOrder {
-	_order: IOrderData;
-	setOrderItems(items: string[]): void;
-    setOrderPrice(value: number): void; 
-    setOrderField(field: keyof IOrderForm, value: string): void;
-    validateOrder(): boolean;
-	clearOrder(): void;
-}
-```
-Типы ошибок формы
-```
-export type FormErrors = Partial<Record<keyof IOrderData, string>>;
-```
-Общий итог данных заказа
+
+Проверка валидации форм
 
 ```
-export interface IOrderData extends IOrderForm {
-	items: string[];
-	total: number;
+export interface IOrderData {
+    CheckValidation(data: Record<keyof IOrder, string>): boolean;
 }
-```
-Модальное окно после успешной покупки
-```
- interface ISuccessfulOrder {
-    _id: string;
-    total: number;
+
+export interface IBuyerInfoData {
+    CheckValidation(data: Record<keyof IBuyerInfo, string>): boolean;
 }
+
 ```
 
 ## Архитектура приложения
@@ -169,48 +156,71 @@ export interface IOrderData extends IOrderForm {
 - _products: IProduct[] - массив объектов товаров
 - _preview: string | null - id карточки товара, выбранной для просмотра в модальном окне
 
-Так же класс предоставляет методы для взаимодействия с этими данными: 
+Так же класс предоставляет методы для взаимодействия с этими данными:
 
+- `get products()` - получить все продукты
 - `getProduct(id: string) :IProductItem` - возвращает карточку товара по ее Id
 - `set preview(productId: string | null)` -  устанавливает данные для предварительного просмотра выбранного продукта
 - `get preview()` - получить выбранный товар для показа в модальном окне
-- `get products()` - получить все продукты
 
 #### Класс BasketData
 
 Класс отвечает за хранение и логику работы с данными корзины.\
 В полях класса хранятся следующие данные:
 
-- \_totalProducts: number - количество продуктов в корзине
 - \__productsInBasket: IProductItem[] = [] - массив с продуктами
 
 Так же класс предоставляет набор методов для взаимодействия с этими данными.
 
 - `setProductsInBasket(product: IProductItem)` - добавляет продукт в корзину
 - `getProductsInBasket(): IProductItem[]` - получает продукты из корзины
-- `checkProductInBasket(item: IProductItem): boolean` - проверяет по id, находится ли продукт в корзине
 - `get totalProducts(): number` - получить количество продуктов в корзине
 - `get totalPriсe(): number` - получить общую цену в корзине
+- `checkProductInBasket(item: IProductItem): boolean` - проверяет по id, находится ли продукт в корзине
 - `deleteProductsInBasket(item: IProductItem)` - удаляет продукт из корзины
 - `clearBasket()` - очищает корзину
 - а так-же геттеры для получения общей цены и количества продуктов в корзине
 
 #### Класс OrderData
 
-Класс отвечает за хранение и логику работы с данными заказа.\
+class OrderData {
+    catalog: IProductItem[] = [];
+	basket: IProductItem[] = [];
+	order: IShoppingInfo = {
+        payment: '',
+        address: '',
+		email: '',
+		phone: '',
+	};
+	orderErrors: IFormError = {};
+	formType: 'order' | 'contacts';
+	preview: string | null;
+}
+
+```
+Класс отвечает за хранение и логику работы с данными приложения\
+
 В полях класса хранятся следующие данные:
+- `catalog: IProductItem[]` - массив карточек продуктов
+- `preview: string | null` - просмотр подробной информации о продукте
+- `basket: IProductItem[]` -  товары, добавленные пользователем в корзину
+- `order: IShoppingInfo` - информация о заказе
+- `orderErrors: IFormError` - сообщение об ошибке при вводе данных в форме
+- `formType: 'order' | 'contacts'` - тип формы
 
-- \_order: IOrderData - все данные заказа
-- formErrors: FormErrors = {} - массив с текстом ошибок форм.
-
-Так же класс предоставляет набор методов для взаимодействия с этими данными.
-
-- `get order()` - получить все данные заказа
-- `setOrderItems(items: string[])` - записывает в массив id товаров в заказе.
-- `setOrderPrice(value: number)` - записывает общую цену заказа
-- `clearOrder(): void` - очищает массив данных после заказа
-- `setOrderField(field: keyof IOrderForm, value: string)` - записывает данные с полей форм в массив данных заказа \_order
-- `validateOrder()` - валидация форм
+Методы: 
+- `setProductList()` - вывод списка продуктов
+- `addToBasket()` - добавление товара в корзину.
+- `deleteFromBasket()` - удаление товара из корзины
+- `isInBasket()` - получение списка товаров в корзине
+- `getNumberBasket()` - вывод количества товаров в корзине
+- `getTotalBasket()` - вывод итоговой стоимости товаров в корзине
+- `cleanBasket()` - очищаение корзины
+- `getTotalBasket()` - отображение суммы всех товаров в корзине
+- `setField()` - ввод данных в поле заказа
+- `setOrderErrors()` - проверка данных адреса и способа оплаты для заказа
+- `setContactsErrors()` - проверка данных эмейла и номера телефона для заказа
+- `clearErrors()` - очищение сообщений о ошибках форм
 
 
 ### Классы представления 
@@ -254,21 +264,25 @@ export interface IOrderData extends IOrderForm {
 
 Поля класса содержат:
 
-- protected _submit: HTMLButtonElement - DOM элемент кнопки сабмита
-- protected _errors: HTMLElement - DOM элемент ошибок
+- protected _submitButton: HTMLButtonElement - DOM элемент кнопки сабмита
+- protected _contentError: HTMLElement - DOM элемент ошибок
 Методы:
 
 - `protected onInputChange(field: keyof T, value: string)` - вешает каждому полю ввода свое событие
 - `set valid(value: boolean)` - разблокирует или блокирует кнопку отправки
 - `set errors(value: string)` - записывает ошибки валидации
-- `render(state: Partial<T> & IFormState)` - рендер формы
+- `resetForm()`: void - cбрасывает значения всех полей формы
 
 Интерфейс:
 
 ```
-interface IFormState {
-	valid: boolean;
-	errors: string[];
+interface IFormInfo {
+    valid: boolean;
+    errors: string[];
+    address: string;
+    payment: string;
+    phone: string;
+    email: string;
 }
 ```
 
@@ -284,9 +298,8 @@ interface IFormState {
 
 Методы:
 
-- `set payment (value: string)` - установка способа оплаты
-- `set address(value: string)` - запись адреса
-- `paymentSelectedRemove()` - сброс кнопки выбора оплаты
+set address() - устанавливает значение в поле адреса
+set paymentButton() - переключает выбранную пользователем кнопку выбора способа оплаты
 
 #### Класс OrderContacts
 
@@ -307,20 +320,25 @@ interface IFormState {
 
 Расширяет класс Component<T>. Класс генерирует карточки товаров, используемые на странице сайта для отображения доступных товаров. Он содержит элементы разметки для различных компонентов карточки продукта, таких как изображение, описание и кнопки добавления/удаления. В конструкторе класса передается DOM элемент темплейта, что позволяет при необходимости формитровать карточки товаров в  разных вариантах верстки. 
 
-Поля класса содержат элементы разметки элементов товара:
+В полях класса хранятся следующие данные:
+- `index: HTMLElement` - порядковый номер товара в корзине
+- `id: string` - номер товара
+- `description: string` - описание товара
+- `image: string` - изображение товара
+- `title: string` - наименование товара
+- `category: string` - категория, к которой относится товар
+- `price: number` - стоимость товара
 
-- _id: string - id товара
-- _description: HTMLElement - описание товара
-- _image: HTMLImageElement - изображение товара
-- _title: HTMLElement - название товара
-- _category: HTMLElement - категори товара
-- _index: HTMLElement - порядковый номер товара в корзине
-- _button: HTMLButtonElemen - кнопка добавления в корзину
-- _deleteButton: HTMLButtonElement - кнопка удаления товара из корзины
-
-Методы: 
-
-Сеттеры и геттеры для сохранения и получения данных из полей класса.
+Методы:
+- `set id()` - установка уникального номера
+- `get id()` - получение уникального номера
+- `set description()` - установка описания товара
+- `set image()` - установка изображения товара
+- `set title()` - установка наименования товара
+- `set category()` - установка категории товара
+- `set price()` - установка стоимости товара
+- `set inBasket()` - установка значения добавленности в корзину
+- `set index()` - установка индекса
 
 #### Класс MainPage 
 

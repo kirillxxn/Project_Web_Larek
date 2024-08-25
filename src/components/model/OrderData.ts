@@ -1,75 +1,114 @@
-import { IOrderData, FormErrors, IOrder, IOrderForm } from '../../types';
-import { Model } from '../base/model';
+import { IProductItem, IShoppingInfo, IFormError, IAppInfo } from "../../types";
+import { Model } from "../base/model";
 
-export class OrderData extends Model<IOrder> implements IOrder {
-	_order: IOrderData = {
-		items: [],
-		address: '',
-		email: '',
-		phone: '',
-		payment: '',
-		total: 0,
-	};
-	formErrors: FormErrors = {};
+export class OrderData extends Model<IAppInfo> {
+  catalog: IProductItem[] = [];
+  basket: IProductItem[] = [];
+  order: IShoppingInfo = {
+    payment: "",
+    address: "",
+    email: "",
+    phone: "",
+  };
+  orderErrors: IFormError = {};
+  formType: "order" | "contacts";
+  preview: string | null;
 
-	get order(): IOrderData {
-		return this._order;
-	}
+  setProductList(items: IProductItem[]) {
+    this.catalog = items;
+    this.emitChanges("items:changed", { catalog: this.catalog });
+  }
 
-	setOrderItems(items: string[]) {
-		this._order.items = items;
-	}
+  addToBasket(item: IProductItem): void {
+    this.basket.push(item);
+    this.emitChanges("basket:changed", this.basket);
+  }
 
-	setOrderPrice(value: number) {
-		this._order.total = value;
-	}
+  deleteFromBasket(item: IProductItem) {
+    this.basket = this.basket.filter((basketItem) => basketItem.id !== item.id);
+    this.emitChanges("basket:changed", this.basket);
+  }
 
-	clearOrder(): void {
-		this._order = {
-			items: [],
-			address: '',
-			email: '',
-			phone: '',
-			payment: '',
-			total: 0,
-		};
-	}
+  isInBasket(item: IProductItem) {
+    return this.basket.some((basketItem) => {
+      return basketItem.id === item.id;
+    });
+  }
 
-	setOrderField(field: keyof IOrderForm, value: string) {
-		this._order[field] = value;
+  getBasketId() {
+    return this.basket.map((item) => item.id);
+  }
 
-		if (this.validateOrder()) {
-			this.events.emit('order:ready', this.order);
-		}
-	}
+  getNumberBasket(): number {
+    return this.basket.length;
+  }
 
-	validateOrder() {
-		const errors: typeof this.formErrors = {};
-		const regexEmail = /^[^@]+@\w+(\.\w+)+\w$/;
-		const regexPhone = /^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$/;
+  getTotalBasket(): number {
+    return this.basket.reduce((total, item) => {
+      return total + (item.price || 0);
+    }, 0);
+  }
 
-		if (!this._order.payment) {
-			errors.payment = 'Необходимо выбрать способ оплаты';
-		}
+  cleanBasket() {
+    this.basket = [];
+    this.emitChanges("basket:changed", this.basket);
+  }
 
-		if (!this._order.address) {
-			errors.address = 'Необходимо указать адрес';
-		}
+  setField(field: keyof IShoppingInfo, value: string) {
+    this.order[field] = value;
+    if (field === "address" || field === "payment") {
+      this.setOrderErrors();
+    }
 
-		if (!this._order.email) {
-			errors.email = 'Необходимо указать Email';
-		} else if (!regexEmail.test(this._order.email)) {
-			errors.email = 'Необходимо указать валидный Email';
-		}
+    if (field === "phone" || field === "email") {
+      this.setContactsErrors();
+    }
+  }
 
-		if (!this._order.phone) {
-			errors.phone = 'Необходимо указать телефон';
-		} else if (!regexPhone.test(this._order.phone)) {
-			errors.email = 'Необходимо указать валидный телефон';
-		}
+  setOrderErrors() {
+    const errors: IFormError = {};
+    if (!this.order.payment) {
+      errors.payment = "Выберите способ оплаты";
+    }
+    if (!this.order.address) {
+      errors.address = "Укажите адрес";
+    }
+    this.orderErrors = errors;
+    this.events.emit("formErrors:change", this.orderErrors);
+    return Object.keys(errors).length === 0;
+  }
 
-		this.formErrors = errors;
-		this.events.emit('formErrors:change', this.formErrors);
-		return Object.keys(errors).length === 0;
-	}
+  setContactsErrors() {
+    const errors: IFormError = {};
+
+    const validateEmail = (email: string): boolean => {
+      const emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+      return emailRegex.test(email);
+    };
+
+    const validatePhone = (phone: string): boolean => {
+      const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+      return phoneRegex.test(phone);
+    };
+
+    if (!this.order.phone) {
+      errors.phone = "Укажите телефон";
+    } else if (!validatePhone(this.order.phone)) {
+      errors.phone = "Некорректный формат телефона";
+    }
+
+    if (!this.order.email) {
+      errors.email = "Укажите email";
+    } else if (!validateEmail(this.order.email)) {
+      errors.email = "Некорректный формат email";
+    }
+
+    this.orderErrors = errors;
+    this.events.emit("formErrors:change", this.orderErrors);
+    return Object.keys(errors).length === 0;
+  }
+
+  clearErrors(): void {
+    this.orderErrors = null;
+  }
 }
