@@ -10,19 +10,19 @@ export interface IProductItem {
 }
 
 export interface IProductItemPreview {
-	products: IProductItem[];
+	catalog: IProductItem[];
 	preview: string | null;
 	getProduct(id: string): IProductItem;
 }
 
 export interface IBasketData {
-	totalProducts: number;
-	totalPrice: number;
-	setProductsInBasket(product: IProductItem): void;
+	getTotalBasket(): number;
+	getNumberBasket(): number
+	addToBasket(product: IProductItem): void;
 	getProductsInBasket(): IProductItem[];
-	checkProductInBasket(product: IProductItem): boolean;
+	isInBasket(product: IProductItem): boolean;
 	deleteProductsInBasket(product: IProductItem): void;
-	clearBasket(): void;
+	cleanBasket(): void;
 
 }
 
@@ -55,8 +55,6 @@ export type IFormError = Partial<IShoppingInfo>;
 
 
 export interface IAppInfo {
-    catalog: IProductItem[];
-    basket: IProductItem[];
     order: IShoppingInfo;
     formError: IFormError;
     events: IEvents;

@@ -2,8 +2,6 @@ import { IProductItem, IShoppingInfo, IFormError, IAppInfo } from "../../types";
 import { Model } from "../base/model";
 
 export class OrderData extends Model<IAppInfo> {
-  catalog: IProductItem[] = [];
-  basket: IProductItem[] = [];
   order: IShoppingInfo = {
     payment: "",
     address: "",
@@ -13,46 +11,6 @@ export class OrderData extends Model<IAppInfo> {
   orderErrors: IFormError = {};
   formType: "order" | "contacts";
   preview: string | null;
-
-  setProductList(items: IProductItem[]) {
-    this.catalog = items;
-    this.emitChanges("items:changed", { catalog: this.catalog });
-  }
-
-  addToBasket(item: IProductItem): void {
-    this.basket.push(item);
-    this.emitChanges("basket:changed", this.basket);
-  }
-
-  deleteFromBasket(item: IProductItem) {
-    this.basket = this.basket.filter((basketItem) => basketItem.id !== item.id);
-    this.emitChanges("basket:changed", this.basket);
-  }
-
-  isInBasket(item: IProductItem) {
-    return this.basket.some((basketItem) => {
-      return basketItem.id === item.id;
-    });
-  }
-
-  getBasketId() {
-    return this.basket.map((item) => item.id);
-  }
-
-  getNumberBasket(): number {
-    return this.basket.length;
-  }
-
-  getTotalBasket(): number {
-    return this.basket.reduce((total, item) => {
-      return total + (item.price || 0);
-    }, 0);
-  }
-
-  cleanBasket() {
-    this.basket = [];
-    this.emitChanges("basket:changed", this.basket);
-  }
 
   setField(field: keyof IShoppingInfo, value: string) {
     this.order[field] = value;

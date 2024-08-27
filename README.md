@@ -58,21 +58,22 @@ yarn build
 Превью карточки товара 
  ```
  interface IProductItemPreview {
-    products: IProductItem[];
+    catalog: IProductItem[];
 	preview: string | null;
 	getProduct(id: string): IProductItem;
+	
 }
 ```
 Модальное окно для товаров в корзине
 ```
  interface IBasketData {
-    items: IProductItem[];
-	total: number;
-	setProductsInBasket(product: IProductItem): void;
+    getTotalBasket(): number;
+	getNumberBasket(): number
+	addToBasket(product: IProductItem): void;
 	getProductsInBasket(): IProductItem[];
-	checkProductInBasket(product: IProductItem): boolean;
+	isInBasket(product: IProductItem): boolean;
 	deleteProductsInBasket(product: IProductItem): void;
-	clearBasket(): void;
+	cleanBasket(): void;
 }
 ```
 Форма ввода данных об адресе и способе доставки
@@ -153,7 +154,7 @@ export interface IBuyerInfoData {
 Класс отвечает за хранение и логику работы с данными товаров.
 В полях класса хранятся следующие данные:
 
-- _products: IProductItem[] - массив объектов товаров
+- _products: IProduct[] - массив объектов товаров
 - _preview: string | null - id карточки товара, выбранной для просмотра в модальном окне
 
 Так же класс предоставляет методы для взаимодействия с этими данными:
@@ -168,24 +169,21 @@ export interface IBuyerInfoData {
 Класс отвечает за хранение и логику работы с данными корзины.\
 В полях класса хранятся следующие данные:
 
-- \__productsInBasket: IProductItem[] = [] - массив с продуктами
+- productsInBasket: IProductItem[] = [] - массив с продуктами
 
 Так же класс предоставляет набор методов для взаимодействия с этими данными.
 
-- `setProductsInBasket(product: IProductItem)` - добавляет продукт в корзину
+- `addToBasket(product: IProductItem)` - добавляет продукт в корзину
 - `getProductsInBasket(): IProductItem[]` - получает продукты из корзины
-- `get totalProducts(): number` - получить количество продуктов в корзине
-- `get totalPriсe(): number` - получить общую цену в корзине
-- `checkProductInBasket(item: IProductItem): boolean` - проверяет по id, находится ли продукт в корзине
+- `getNumberBasket(): number` - получить количество продуктов в корзине
+- `getTotalBasket(): number` - получить общую цену в корзине
+- `isInBasket(item: IProductItem): boolean` - проверяет по id, находится ли продукт в корзине
 - `deleteProductsInBasket(item: IProductItem)` - удаляет продукт из корзины
-- `clearBasket()` - очищает корзину
-- а так-же геттеры для получения общей цены и количества продуктов в корзине
+- `cleanBasket()` - очищает корзину
 
 #### Класс OrderData
 
 class OrderData {
-    catalog: IProductItem[] = [];
-	basket: IProductItem[] = [];
 	order: IShoppingInfo = {
         payment: '',
         address: '',
@@ -209,14 +207,6 @@ class OrderData {
 - `formType: 'order' | 'contacts'` - тип формы
 
 Методы: 
-- `setProductList()` - вывод списка продуктов
-- `addToBasket()` - добавление товара в корзину.
-- `deleteFromBasket()` - удаление товара из корзины
-- `isInBasket()` - получение списка товаров в корзине
-- `getNumberBasket()` - вывод количества товаров в корзине
-- `getTotalBasket()` - вывод итоговой стоимости товаров в корзине
-- `cleanBasket()` - очищаение корзины
-- `getTotalBasket()` - отображение суммы всех товаров в корзине
 - `setField()` - ввод данных в поле заказа
 - `setOrderErrors()` - проверка данных адреса и способа оплаты для заказа
 - `setContactsErrors()` - проверка данных эмейла и номера телефона для заказа

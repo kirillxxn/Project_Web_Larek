@@ -3,19 +3,19 @@ import { Model } from "../base/model";
 
 export class ProductData extends Model<IProductItemPreview> {
   protected _preview: string | null = null;
-  protected _products: IProductItem[] = [];
+  catalog: IProductItem[] = [];
 
-  set products(products: IProductItem[]) {
-    this._products = products;
-    this.events.emit("product:changed", { catalog: this._products });
+  setProductList(items: IProductItem[]) {
+    this.catalog = items;
+    this.emitChanges("items:changed", { catalog: this.catalog });
   }
 
   get products() {
-    return this._products;
+    return this.catalog;
   }
 
   getProduct(id: string): IProductItem | undefined {
-    return this._products.find((item) => item.id === id);
+    return this.catalog.find((item) => item.id === id);
   }
 
   set preview(productId: string | null) {

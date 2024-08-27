@@ -18,11 +18,13 @@ import { ContactsForm } from "./components/view/OrderContacts";
 import { OrderForm } from "./components/view/OrderPayment";
 import { ProductCard } from "./components/view/ProductCard";
 import { Success } from "./components/view/Success";
+import { BasketData } from "./components/model/BasketData";
 
 import { SiteApi } from "./components/AppApi";
 
 import { API_URL, CDN_URL } from "./utils/constants";
 import { cloneTemplate, ensureElement } from "./utils/utils";
+import { ProductData } from "./components/model/ProductData";
 
 const successTemplate = ensureElement<HTMLTemplateElement>("#success");
 const basketTemplate = ensureElement<HTMLTemplateElement>("#basket");
@@ -40,9 +42,11 @@ const modal = new Modal(ensureElement<HTMLElement>("#modal-container"), events);
 const orderForm = new OrderForm(cloneTemplate(orderTemplate), events);
 const contactForm = new ContactsForm(cloneTemplate(contactsTemplate), events);
 const page = new MainPage(document.body, events);
-
 const basket = new Basket("basket", cloneTemplate(basketTemplate), events);
+
+const basketData = new BasketData({}, events);
 const orderData = new OrderData({}, events);
+const productData = new ProductData({}, events);
 
 events.on("modal:open", () => {
   page.locked = true;
@@ -55,14 +59,14 @@ events.on("modal:close", () => {
 api
   .getProductList()
   .then((result) => {
-    orderData.setProductList(result);
+    productData.setProductList(result);
   })
   .catch((err) => {
     console.error(err);
   });
 
 events.on("items:changed", () => {
-  page.catalog = orderData.catalog.map((item) => {
+  page.catalog = productData.catalog.map((item) => {
     const product = new ProductCard(
       "card",
       cloneTemplate(cardCatalogTemplate),
@@ -84,16 +88,16 @@ events.on("card:select", (item: IProductItem) => {
     cloneTemplate(cardPreviewTemplate),
     {
       onClick: () => {
-        if (!orderData.isInBasket(item)) {
-          orderData.addToBasket(item);
+        if (!basketData.isInBasket(item)) {
+          basketData.addToBasket(item);
         } else {
-          orderData.deleteFromBasket(item);
+          basketData.deleteProductsInBasket(item);
         }
-        card.inBasket = orderData.isInBasket(item);
+        card.inBasket = basketData.isInBasket(item);
       },
     }
   );
-  card.inBasket = orderData.isInBasket(item);
+  card.inBasket = basketData.isInBasket(item);
   modal.render({
     content: card.render({
       id: item.id,
@@ -107,11 +111,11 @@ events.on("card:select", (item: IProductItem) => {
 });
 
 events.on("card:add", (item: IProductItem) => {
-  orderData.addToBasket(item);
+  basketData.addToBasket(item);
 });
 
 events.on("card:remove", (item: IProductItem) => {
-  orderData.deleteFromBasket(item);
+  basketData.deleteProductsInBasket(item);
 });
 
 events.on("basket:open", () => {
@@ -122,8 +126,8 @@ events.on("basket:open", () => {
 });
 
 events.on("basket:changed", () => {
-  page.counter = orderData.getNumberBasket();
-  const items = orderData.basket.map((item, index) => {
+  page.counter = basketData.getNumberBasket();
+  const items = basketData.productsInBasket.map((item, index) => {
     const card = new ProductCard("card", cloneTemplate(cardBasketTemplate), {
       onClick: () => {
         events.emit("card:remove", item);
@@ -136,7 +140,7 @@ events.on("basket:changed", () => {
     });
   });
 
-  basket.render({ list: items, total: orderData.getTotalBasket() });
+  basket.render({ list: items, total: basketData.getTotalBasket() });
 });
 
 events.on("order:open", () => {
@@ -173,15 +177,15 @@ events.on("contacts:submit", () => {
   api
     .postOrder({
       ...orderData.order,
-      total: orderData.getTotalBasket(),
-      items: orderData.getBasketId(),
+      total: basketData.getTotalBasket(),
+      items: basketData.getBasketId(),
     })
     .then((result) => {
       orderForm.resetForm();
       contactForm.resetForm();
       events.emit("order:complete", result);
-      orderData.cleanBasket();
-      page.counter = orderData.getNumberBasket();
+      basketData.cleanBasket();
+      page.counter = basketData.getNumberBasket();
     })
     .catch(console.error);
 });

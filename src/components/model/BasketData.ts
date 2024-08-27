@@ -2,39 +2,36 @@ import { IBasketData, IProductItem } from "../../types";
 import { ProductData } from "./ProductData";
 
 export class BasketData extends ProductData implements IBasketData {
-  protected _productsInBasket: IProductItem[] = [];
+  productsInBasket: IProductItem[] = [];
 
-  setProductsInBasket(product: IProductItem): void {
-    if (!this._productsInBasket.some((item) => item.id === product.id)) {
-      this._productsInBasket.push(product);
-    }
+  addToBasket(item: IProductItem): void {
+    this.productsInBasket.push(item);
+    this.emitChanges("basket:changed", this.productsInBasket);
   }
 
   getProductsInBasket(): IProductItem[] {
-    return this._productsInBasket;
+    return this.productsInBasket;
   }
-
-  get totalProducts(): number {
-    return this._productsInBasket.length;
+  getNumberBasket(): number {
+    return this.productsInBasket.length;
   }
-
-  get totalPrice(): number {
-    return this._productsInBasket.reduce((total, product) => {
-      return total + (product.price || 0);
+  getTotalBasket(): number {
+    return this.productsInBasket.reduce((total, item) => {
+      return total + (item.price || 0);
     }, 0);
   }
-
-  checkProductInBasket(item: IProductItem): boolean {
-    return this._productsInBasket.some((product) => product.id === item.id);
+  isInBasket(item: IProductItem): boolean {
+    return this.productsInBasket.some((product) => product.id === item.id);
   }
 
   deleteProductsInBasket(item: IProductItem): void {
-    this._productsInBasket = this._productsInBasket.filter(
-      (product) => product.id !== item.id
-    );
+    this.productsInBasket = this.productsInBasket.filter((basketItem) => basketItem.id !== item.id); 
+    this.emitChanges("basket:changed", this.productsInBasket); 
   }
-
-  clearBasket(): void {
-    this._productsInBasket.length = 0;
+  getBasketId() {
+    return this.productsInBasket.map((item) => item.id);
+  }
+  cleanBasket(): void {
+    this.productsInBasket.length = 0;
   }
 }
